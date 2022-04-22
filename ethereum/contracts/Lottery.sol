@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import "hardhat/console.sol";
+
 contract LotteryGenerator {
 
     address[] public lotteries;
@@ -8,6 +10,10 @@ contract LotteryGenerator {
     struct lottery {
         uint index;
         address manager;
+    }
+
+    constructor() public payable {
+
     }
 
     mapping(address => lottery) lotteryStructs;
@@ -18,7 +24,6 @@ contract LotteryGenerator {
         lotteries.push(newLottery);
         lotteryStructs[newLottery].index = lotteries.length - 1;
         lotteryStructs[newLottery].manager = msg.sender;
-
         emit LotteryCreated(newLottery);
     }
 
@@ -60,11 +65,10 @@ contract Lottery {
     uint public maxEntriesForPlayer;
     uint public ethToParticipate;
 
-    constructor( string memory name, address creator) {
+    constructor( string memory name, address creator) payable{
         manager = creator;
         lotteryName = name;
     }
-
 
     fallback() payable external {}
 
@@ -73,17 +77,21 @@ contract Lottery {
     }
 
     function participate(string memory playerName) public payable {
+
         require(bytes(playerName).length > 0);
         require(isLotteryLive);
         require(msg.value == ethToParticipate * 1 ether);
         require(players[msg.sender].entryCount < maxEntriesForPlayer);
 
         if (isNewPlayer(msg.sender)) {
+            console.log("isNewPlayer");
+
             addressIndexes.push(msg.sender);
             players[msg.sender].entryCount = 1;
             players[msg.sender].name = playerName;
             players[msg.sender].index = addressIndexes.length - 1;
         } else {
+            console.log("is not NewPlayer");
             players[msg.sender].entryCount += 1;
         }
 
@@ -93,13 +101,15 @@ contract Lottery {
         emit PlayerParticipated(players[msg.sender].name, players[msg.sender].entryCount);
     }
 
-    function activateLottery(uint maxEntries, uint ethRequired) public restricted {
+    function activateLottery(uint maxEntries, uint ethRequired) public payable {
+        require(msg.sender == manager);
         isLotteryLive = true;
         maxEntriesForPlayer = maxEntries == 0 ? 1 : maxEntries;
         ethToParticipate = ethRequired == 0 ? 1 : ethRequired;
     }
 
-    function declareWinner() public restricted {
+    function declareWinner() public payable {
+        require(msg.sender == manager);
         require(lotteryBag.length > 0);
 
         uint index = generateRandomNumber() % lotteryBag.length;
@@ -143,12 +153,8 @@ contract Lottery {
         return uint(keccak256(abi.encodePacked(block.difficulty, block.timestamp , lotteryBag)));
     }
 
-    modifier restricted(){
-        require(msg.sender == manager);
-        _;
-    }
-
     // Events
     event WinnerDeclared(string name, uint entryCount);
     event PlayerParticipated(string name, uint entryCount);
 }
+
