@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+}
+
+/* RainbowKit overrides */
+[data-rk] {
+  --rk-colors-accentColor: #7C3AED !important;
+}
