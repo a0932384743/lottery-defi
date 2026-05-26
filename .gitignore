@@ -1,2 +1,20 @@
 node_modules
+.env
+.env.local
+
+# Hardhat
+cache
+artifacts
+typechain-types
+
+# Old build
 ethereum/build
+
+# Next.js
+frontend/.next
+frontend/out
+frontend/node_modules
+frontend/.env.local
+
+# Misc
+.DS_Store
